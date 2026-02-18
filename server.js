@@ -46,6 +46,16 @@ async function initAdmin() {
     );
   `);
 
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS documentos (
+    id SERIAL PRIMARY KEY,
+    alumno_nombre TEXT NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    archivo_nombre TEXT NOT NULL
+  );
+`);
+
+
   const user = process.env.ADMIN_USER;
   const pass = process.env.ADMIN_PASS;
 
@@ -72,6 +82,43 @@ function requireAuth(req, res, next) {
   }
   next();
 }
+
+app.post("/api/documentos", requireAuth, async (req, res) => {
+  try {
+    const { alumno_nombre, archivo_nombre } = req.body;
+
+    if (!alumno_nombre || !archivo_nombre) {
+      return res.status(400).json({ error: "Faltan datos" });
+    }
+
+    const result = await pool.query(
+      "INSERT INTO documentos (alumno_nombre, archivo_nombre) VALUES ($1, $2) RETURNING *",
+      [alumno_nombre, archivo_nombre]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+app.get("/api/documentos", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM documentos ORDER BY fecha_creacion DESC"
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+
 
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "admin.html"));
