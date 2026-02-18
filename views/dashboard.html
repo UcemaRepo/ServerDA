@@ -8,27 +8,27 @@
   <p>Servidor listo para almacenar Débitos Automáticos.</p>
   <a href="/logout">Cerrar sesión</a>
 </body>
-  <script>
-async function cargarDocumentos() {
-  const res = await fetch("/api/documentos");
-  const docs = await res.json();
+<script>
+async function cargarArchivos() {
+  const res = await fetch("/api/archivos");
+  const archivos = await res.json();
 
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  docs.forEach(doc => {
+  archivos.forEach(nombre => {
     const div = document.createElement("div");
     div.innerHTML = `
-      <strong>${doc.alumno_nombre}</strong><br>
-      Archivo: ${doc.archivo_nombre}<br>
-      Fecha: ${new Date(doc.fecha_creacion).toLocaleString()}
+      <a href="/uploads/${nombre}" target="_blank">${nombre}</a>
       <hr>
     `;
     lista.appendChild(div);
   });
 }
 
-cargarDocumentos();
+cargarArchivos();
 </script>
+
+  
 
 </html>
