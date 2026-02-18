@@ -10,7 +10,7 @@
 </body>
 <script>
 async function cargarArchivos() {
-  const res = await fetch("/api/archivos");
+  const res = await fetch("/api/files");
   const archivos = await res.json();
 
   const lista = document.getElementById("lista");
