@@ -6,8 +6,29 @@ import pg from "pg";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import multer from "multer";
+import fs from "fs";
 
 dotenv.config();
+
+const uploadDir = "uploads";
+
+// Crear carpeta si no existe
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "_" + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ storage });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -146,6 +167,19 @@ app.post("/admin/login", async (req, res) => {
   req.session.user = user.username;
   res.redirect("/dashboard");
 });
+
+app.post("/api/upload", requireAuth, upload.single("pdf"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No se subió archivo" });
+  }
+
+  res.json({
+    message: "Archivo guardado localmente",
+    filename: req.file.filename
+  });
+});
+
+app.use("/uploads", express.static("uploads"));
 
 app.get("/dashboard", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "dashboard.html"));
